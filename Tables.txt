@@ -1,0 +1,85 @@
+CREATE DATABASE paper_mill_db;
+
+USE paper_mill_db;
+
+CREATE TABLE rolls (
+    reel_number INT PRIMARY KEY,
+    gsm INT,
+    grade VARCHAR(50),
+    width INT,
+    length INT,
+    breaks INT,
+    comments TEXT,
+    current_location VARCHAR(100) DEFAULT 'Production',
+    status ENUM('in-stock', 'shipped', 'loading') NOT NULL,
+    qr_code TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE trucks (
+    truck_id INT AUTO_INCREMENT PRIMARY KEY,
+    driver_name VARCHAR(100),
+    license_number VARCHAR(50),
+    loaded_weight DECIMAL(10, 2),
+    unloaded_weight DECIMAL(10, 2),
+    status ENUM('incoming', 'outgoing'),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE transactions (
+    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    truck_id INT,
+    status ENUM('Pending', 'Completed'),
+    invoice_details TEXT,
+    location_id INT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    FOREIGN KEY (truck_id) REFERENCES trucks(truck_id),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+
+CREATE TABLE transaction_details (
+    detail_id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id INT,
+    reel_number INT,
+    weight DECIMAL(10, 2),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(transaction_id),
+    FOREIGN KEY (reel_number) REFERENCES rolls(reel_number)
+);
+
+CREATE TABLE suppliers (
+    supplier_id INT AUTO_INCREMENT PRIMARY KEY,
+    supplier_name VARCHAR(100),
+    contact_info VARCHAR(255),
+    address TEXT
+);
+
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100),
+    contact_info VARCHAR(255),
+    address TEXT
+);
+
+
+CREATE TABLE raw_materials (
+    material_id INT AUTO_INCREMENT PRIMARY KEY,
+    material_type_id INT,
+    supplier_id INT,
+    quantity DECIMAL(10, 2),
+    net_weight DECIMAL(10, 2),
+    gross_weight DECIMAL(10, 2),
+    price_per_unit DECIMAL(10, 2),
+    FOREIGN KEY (material_type_id) REFERENCES raw_material_types(material_type_id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id)
+);
+
+INSERT INTO raw_material_types (material_name) VALUES 
+('OCC'),
+('Mixed Waste Paper'),
+('Starch'),
+('Sizing Chemicals'),
+('Dyes and Inks'),
+('Pulping Chemicals'),
+('New Material');
